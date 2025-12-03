@@ -299,3 +299,19 @@ API 服务全线贯通：
 完成了基于 Django REST Framework (DRF) 的接口开发，涵盖 SKU 管理、版本回溯、批次审核等核心功能。
 
 解决了 CORS（跨域）和环境配置问题，打通了前后端数据交互的通道。
+
+# Phase 2: Inventory & Operation Extensions
+# 新增：库存与出入库操作扩展模型
+新增的 5 张核心表设计：
+
+WarehouseLocation (库位表)：管理仓库里的物理位置。
+
+InventoryStock (实时库存表)：记录哪个库位上有哪个版本的标签产品，有多少个。
+
+InboundReceipt (入库单)：记录入库行为。
+
+InboundLineItem (入库明细)：记录具体入库的商品和数量。
+
+OutboundExecution (出库执行/拣货单)：连接 ShipmentBatch 和库存，记录实际的拣货和发货行为。
+
+StockTransaction (库存流水/日志)：审计每一笔库存变动。
