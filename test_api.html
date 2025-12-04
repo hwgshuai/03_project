@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>API 联调测试</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .box { border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        button { padding: 8px 15px; cursor: pointer; background-color: #007bff; color: white; border: none; }
+        pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+
+    <h2>电商仓库风控系统 - API 测试台</h2>
+
+    <div class="box">
+        <h3>1. 获取 SKU 列表</h3>
+        <button onclick="fetchSKUs()">发送 GET /api/skus/</button>
+        <pre id="sku-result">等待操作...</pre>
+    </div>
+
+    <div class="box">
+        <h3>2. 创建新标签版本 (触发哈希生成)</h3>
+        <input type="text" id="fnsku" placeholder="输入 FNSKU (如: X001)" value="X001-TEST">
+        <input type="text" id="upc" placeholder="输入 UPC" value="123456789">
+        <button onclick="createLabel()">发送 POST /api/labels/</button>
+        <pre id="label-result">等待操作...</pre>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://127.0.0.1:8000/api';
+
+        // 1. 获取 SKU
+        async function fetchSKUs() {
+            try {
+                const response = await fetch(`${BASE_URL}/skus/`);
+                const data = await response.json();
+                document.getElementById('sku-result').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('sku-result').className = 'success';
+            } catch (error) {
+                document.getElementById('sku-result').textContent = '连接失败: ' + error;
+                document.getElementById('sku-result').className = 'error';
+            }
+        }
+
+        // 2. 创建标签
+        async function createLabel() {
+            const fnsku = document.getElementById('fnsku').value;
+            const upc = document.getElementById('upc').value;
+            
+            // 注意：这里需要先确保数据库里有 ID=1 的 SKU，否则会报错。
+            // 实际开发中应该先选择 SKU。这里为了演示默认用 ID 1。
+            const payload = {
+                sku: 1, 
+                fnsku: fnsku,
+                upc: upc,
+                created_by: "test_user"
+            };
+
+            try {
+                const response = await fetch(`${BASE_URL}/labels/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                document.getElementById('label-result').textContent = JSON.stringify(data, null, 2);
+                
+                if (response.ok) {
+                    document.getElementById('label-result').className = 'success';
+                    alert(`成功！\n版本号: v${data.version_number}\n哈希值: ${data.checksum.substring(0, 10)}...`);
+                } else {
+                    document.getElementById('label-result').className = 'error';
+                }
+            } catch (error) {
+                document.getElementById('label-result').textContent = '连接失败: ' + error;
+            }
+        }
+    </script>
+</body>
+</html>

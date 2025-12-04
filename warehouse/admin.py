@@ -2,7 +2,7 @@
 from django import forms
 from django.contrib import admin
 from django.utils import timezone
-from .models import SKU, LabelVersion, ShipmentBatch, Operator
+from .models import SKU, LabelVersion, ShipmentBatch, Operator , WarehouseLocation , InventoryStock , InboundReceipt , InboundLineItem , OutboundExecution , StockTransaction
 
 @admin.register(Operator)
 class OperatorAdmin(admin.ModelAdmin):
@@ -68,6 +68,44 @@ class ShipmentBatchAdmin(admin.ModelAdmin):
         if change:
             obj.update_status_based_on_reviews()
 
+
+
+@admin.register(WarehouseLocation)
+class WarehouseLocationAdmin(admin.ModelAdmin):
+    list_display = ['code', 'location_type', 'is_active', 'description']
+    list_filter = ['location_type', 'is_active']
+    search_fields = ['code']
+
+@admin.register(InventoryStock)
+class InventoryStockAdmin(admin.ModelAdmin):
+    list_display = ['location', 'label_version', 'quantity', 'updated_at']
+    list_filter = ['location', 'label_version__sku']
+    search_fields = ['location__code', 'label_version__sku__sku_code']
+
+@admin.register(InboundReceipt)
+class InboundReceiptAdmin(admin.ModelAdmin):
+    list_display = ['receipt_no', 'reference_no', 'status', 'operator', 'created_at', 'completed_at']
+    list_filter = ['status', 'operator']
+    search_fields = ['receipt_no', 'reference_no']
+
+@admin.register(InboundLineItem)
+class InboundLineItemAdmin(admin.ModelAdmin):
+    list_display = ['receipt', 'label_version', 'target_location', 'quantity_declared', 'quantity_received']
+    list_filter = ['receipt__status', 'target_location']
+    search_fields = ['receipt__receipt_no', 'label_version__sku__sku_code']
+
+@admin.register(OutboundExecution)
+class OutboundExecutionAdmin(admin.ModelAdmin):
+    list_display = ['batch', 'picker', 'status', 'shipped_at', 'tracking_number']
+    list_filter = ['status', 'picker']
+    search_fields = ['batch__batch_code', 'tracking_number']
+
+@admin.register(StockTransaction)
+class StockTransactionAdmin(admin.ModelAdmin):
+    list_display = ['transaction_type', 'sku', 'label_version', 'location', 'quantity_change', 'balance_after', 'operator', 'timestamp']
+    list_filter = ['transaction_type', 'sku', 'location']
+    search_fields = ['reference_document', 'sku__sku_code']
+    readonly_fields = ['timestamp']  # 日志不可改
 admin.site.register(SKU, SKUAdmin)
 admin.site.register(LabelVersion, LabelVersionAdmin)
 admin.site.register(ShipmentBatch, ShipmentBatchAdmin)
